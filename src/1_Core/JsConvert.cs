@@ -83,10 +83,10 @@ namespace Espresso
                         object[] newarr = new object[len];
                         unsafe
                         {
-                            JsValue** arr = (JsValue**)v.Ptr;
+                            JsValue* arr = (JsValue*)v.Ptr;
                             for (int i = 0; i < len; ++i)
                             {
-                                newarr[i] = FromJsValuePtr(arr[i]);
+                                newarr[i] = FromJsValuePtr((arr + i));
                             }
                         }
                         return newarr;
@@ -129,8 +129,8 @@ namespace Espresso
                     //this compose of function ptr and delegate's target
                     unsafe
                     {
-                        JsValue** arr = (JsValue**)v.Ptr;
-                        return new JsFunction(_context, arr[0]->Ptr, arr[1]->Ptr);
+                        JsValue* arr = (JsValue*)v.Ptr;
+                        return new JsFunction(_context, (arr)->Ptr, (arr + 1)->Ptr);
                     }
                 default:
                     throw new InvalidOperationException("unknown type code: " + v.Type);
@@ -168,10 +168,10 @@ namespace Espresso
                     {
                         int len = v->I32;
                         object[] newarr = new object[len];
-                        JsValue** arr = (JsValue**)v->Ptr;
+                        JsValue* arr = (JsValue*)v->Ptr;
                         for (int i = 0; i < len; ++i)
                         {
-                            newarr[i] = FromJsValuePtr(arr[i]);
+                            newarr[i] = FromJsValuePtr((arr + i));
                         }
                         return newarr;
                     }
@@ -214,8 +214,8 @@ namespace Espresso
                     //this compose of function ptr and delegate's target
                     unsafe
                     {
-                        JsValue** arr = (JsValue**)v->Ptr;
-                        return new JsFunction(_context, arr[0]->Ptr, arr[1]->Ptr);
+                        JsValue* arr = (JsValue*)v->Ptr;
+                        return new JsFunction(_context, arr->Ptr, (arr + 1)->Ptr);
                     }
                 default:
                     throw new InvalidOperationException("unknown type code: " + v->Type);
@@ -229,11 +229,11 @@ namespace Espresso
             int count = v.I32 * 2;//key and value
             unsafe
             {
-                JsValue** arr = (JsValue**)v.Ptr;
+                JsValue* arr = (JsValue*)v.Ptr;
                 for (int i = 0; i < count;)
                 {
-                    JsValue* key = arr[i];
-                    JsValue* value = arr[i + 1];
+                    JsValue* key = arr + i;
+                    JsValue* value = arr + i + 1;
 
                     //TODO: review when key is not string 
                     obj[(string)FromJsValuePtr(key)] = FromJsValuePtr(value);
@@ -251,11 +251,11 @@ namespace Espresso
             int count = v->I32 * 2;//key and value
             unsafe
             {
-                JsValue** arr = (JsValue**)v->Ptr;
+                JsValue* arr = (JsValue*)v->Ptr;
                 for (int i = 0; i < count;)
                 {
-                    JsValue* key = arr[i];
-                    JsValue* value = arr[i + 1];
+                    JsValue* key = (arr + i);
+                    JsValue* value = (arr + i + 1);
 
                     //TODO: review when key is not string 
                     obj[(string)FromJsValuePtr(key)] = FromJsValuePtr(value);
@@ -284,7 +284,15 @@ namespace Espresso
         public void ToJsValue(string value, ref JsValue output)
         {
             // We need to allocate some memory on the other side; will be free'd by unmanaged code.            
-            JsContext.jsvalue_alloc_string(value, ref output);
+            char[] buff = value.ToCharArray();
+            unsafe
+            {
+                fixed (char* c1 = value)
+                {
+                    JsContext.jsvalue_alloc_string(c1, value.Length, ref output);
+                }
+            }
+
             output.Type = JsValueType.String;
             output.I32 = value.Length;
         }
@@ -292,7 +300,10 @@ namespace Espresso
         {
             //TODO: review here
             // We need to allocate some memory on the other side; will be free'd by unmanaged code.            
-            JsContext.jsvalue_alloc_string(c.ToString(), ref output);
+            unsafe
+            {
+                JsContext.jsvalue_alloc_string(&c, 1, ref output);
+            }
             output.Type = JsValueType.String;
             output.I32 = 1;
         }
@@ -345,10 +356,10 @@ namespace Espresso
             }
             unsafe
             {
-                JsValue** nativeArr = (JsValue**)output.Ptr;
+                JsValue* nativeArr = (JsValue*)output.Ptr;
                 for (int i = 0; i < len; i++)
                 {
-                    AnyToJsValuePtr(arr[i], nativeArr[i]);
+                    AnyToJsValuePtr(arr[i], nativeArr + i);
                 }
             }
         }
@@ -401,9 +412,17 @@ namespace Espresso
             if (type == typeof(String) || type == typeof(Char))
             {
                 // We need to allocate some memory on the other side;
-                // will be free'd by unmanaged code.
+                // will be free'd by unmanaged code. 
+
+                string strdata = obj.ToString();
+                unsafe
+                {
+                    fixed (char* buffer = strdata)
+                    {
+                        JsContext.jsvalue_alloc_string(buffer, strdata.Length, ref output);
+                    }
+                }
                 output.Type = JsValueType.String;
-                JsContext.jsvalue_alloc_string(obj.ToString(), ref output);
                 return;
             }
             //-----------------------------------------------------------
@@ -499,10 +518,10 @@ namespace Espresso
 
                 unsafe
                 {
-                    JsValue** jsarr = (JsValue**)output.Ptr;
+                    JsValue* jsarr = (JsValue*)output.Ptr;
                     for (int i = 0; i < arrLen; i++)
                     {
-                        AnyToJsValuePtr(array[i], jsarr[i]);
+                        AnyToJsValuePtr(array[i], (jsarr + i));
                     }
                 }
                 return;
@@ -544,7 +563,12 @@ namespace Espresso
             //-----
             Type type = obj.GetType();
             // Check for nullable types (we will cast the value out of the box later). 
-            type = type.ExtGetInnerTypeIfNullableValue();
+            Type innerTypeOfNullable = type.ExtGetInnerTypeIfNullableValue();
+            if (innerTypeOfNullable != null)
+            {
+                type = innerTypeOfNullable;
+            }
+
             if (type == typeof(Boolean))
             {
                 output->Type = JsValueType.Boolean;
@@ -556,7 +580,14 @@ namespace Espresso
             {
                 // We need to allocate some memory on the other side;
                 // will be free'd by unmanaged code.
-                JsContext.jsvalue_alloc_string(obj.ToString(), output);
+                string strdata = obj.ToString();
+                unsafe
+                {
+                    fixed (char* b = strdata)
+                    {
+                        JsContext.jsvalue_alloc_string2(b, strdata.Length, output);
+                    }
+                }
                 output->Type = JsValueType.String;
                 return;
             }
@@ -656,10 +687,10 @@ namespace Espresso
                 output->Type = JsValueType.Array;
                 unsafe
                 {
-                    JsValue** arr = (JsValue**)output->Ptr;
+                    JsValue* arr = (JsValue*)output->Ptr;
                     for (int i = 0; i < arrLen; i++)
                     {
-                        AnyToJsValuePtr(array[i], arr[i]);
+                        AnyToJsValuePtr(array[i], arr + i);
                     }
                 }
 
