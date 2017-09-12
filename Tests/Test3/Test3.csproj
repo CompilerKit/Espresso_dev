@@ -54,6 +54,10 @@
     <Compile Include="JsTypeDefinitionBuilder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TS\EspressionHostForTsc_25.cs" />
+    <Compile Include="TS\TsFromJson.cs" />
+    <Compile Include="TS\TypeScriptCodeObjectKind.cs" />
+    <Compile Include="TS\TypeScriptParser.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -76,8 +80,14 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="TS\ts_samples\diagnosticMessages.json" />
+    <None Include="TS\ts_samples\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\SharpConnect.Data\src\SharpConnect.Data\SharpConnect.Data.csproj">
+      <Project>{9afb3f52-d37d-4fba-ac0d-76d95ae956b0}</Project>
+      <Name>SharpConnect.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\build\Net20\Espresso.Interfaces\Espresso.Interfaces.csproj">
       <Project>{81692f45-7266-4d82-a864-9d7dd839c290}</Project>
       <Name>Espresso.Interfaces</Name>
@@ -90,6 +100,30 @@
       <Project>{851ae200-bf80-450b-bf86-d0c14d32e980}</Project>
       <Name>Test2</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="TS\ts_samples\binder.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\checker.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\commandLineParser.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\comments.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\core.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\declarationEmitter.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\emitter.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\factory.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\greeter1.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\moduleNameResolver.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\parser.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\performance.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\program.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\scanner.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\sourcemap.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\symbolWalker.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\sys.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\transformer.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\tsc.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\types.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\utilities.ts" />
+    <TypeScriptCompile Include="TS\ts_samples\visitor.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
