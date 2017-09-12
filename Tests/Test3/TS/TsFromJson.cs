@@ -46,56 +46,63 @@ namespace Espresso.TypeScript
         }
         void ReadModuleBody(EsElem node)
         {
-            EsArr stmts = node.GetAttributeValueAsArray("statements");
-            if (stmts == null)
+            EsArr moduleMbs = node.GetAttributeValueAsArray("statements");
+            if (moduleMbs == null)
             {
                 //?
                 return;
             }
-            int j = stmts.Count;
+            int j = moduleMbs.Count;
             for (int i = 0; i < j; ++i)
             {
-                EsElem stmt = (EsElem)stmts[i];
-                SyntaxKind stmt_kind = stmt.Kind();
+                EsElem mb = (EsElem)moduleMbs[i];
+                SyntaxKind stmt_kind = mb.Kind();
                 switch (stmt_kind)
                 {
                     default:
                         throw new NotSupportedException();
                     case SyntaxKind.ClassDeclaration:
-                        ReadClassDecl(stmt);
+                        ReadClassDecl(mb);
                         break;
                     case SyntaxKind.InterfaceDeclaration:
-                        ReadInterfaceDecl(stmt);
+                        ReadInterfaceDecl(mb);
                         break;
                     case SyntaxKind.FunctionDeclaration:
-                        ReadFuncDecl(stmt);
+                        ReadFuncDecl(mb);
                         break;
                     case SyntaxKind.VariableStatement:
-                        ReadVariableStatement(stmt);
+                        ReadVariableStatement(mb);
                         break;
                     case SyntaxKind.ExpressionStatement:
-                        ReadExpressionStatement(stmt);
+                        ReadExpressionStatement(mb);
                         break;
                     case SyntaxKind.ModuleDeclaration:
-                        ReadModuleDecl(stmt);
+                        ReadModuleDecl(mb);
                         break;
                     case SyntaxKind.EnumDeclaration:
-                        ReadEnumDecl(stmt);
+                        ReadEnumDecl(mb);
                         break;
                     case SyntaxKind.IfStatement:
                         //? -->found in tsc.ts
+                        break;
+                    case SyntaxKind.ImportDeclaration:
+                        ReadImportDecl(mb);
                         break;
                     case SyntaxKind.ExportDeclaration:
                     case SyntaxKind.ExportAssignment:
                     case SyntaxKind.NamespaceExportDeclaration:
                     case SyntaxKind.ImportEqualsDeclaration:
-                    case SyntaxKind.ImportDeclaration:
+
                     case SyntaxKind.TypeAliasDeclaration:
                         //TODO:
                         break;
 
                 }
             }
+        }
+        void ReadImportDecl(EsElem node)
+        {
+
         }
         void ReadModuleDecl(EsElem node)
         {
@@ -111,7 +118,7 @@ namespace Espresso.TypeScript
             {
                 string name = es_name.GetAttributeValueAsString("escapedText");
             }
-            
+
         }
 
         void ReadVariableStatement(EsElem node)

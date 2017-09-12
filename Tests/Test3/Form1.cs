@@ -1009,7 +1009,7 @@ namespace Test3
             //in each folder we find index.d.ts
             int j = folders.Length;
 
-            for (int i = 748; i < j; ++i)
+            for (int i = 0; i < j; ++i)
             {
                 string filename = folders[i].Replace('\\', '/') + "/index.d.ts";
                 if (File.Exists(filename))
@@ -1020,18 +1020,22 @@ namespace Test3
                     parser.Dispose();
                 }
             }
-            //string[] sampleFiles = System.IO.Directory.GetFiles("d://projects2/);
-            //int j = sampleFiles.Length;
-            //for (int i = 0; i < j; ++i)
-            //{
-            //    string filename = Path.GetFileName(sampleFiles[i]);
-            //    if (Path.GetExtension(filename) == ".ts")
-            //    {
-            //        Espresso.TypeScript.TypeScriptParser parser = new Espresso.TypeScript.TypeScriptParser();
-            //        parser.Parse(filename);
-            //        parser.Dispose();
-            //    }
-            //}
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            
+            string folder = "D:/projects2/DefinitelyTyped/types/esprima";
+
+            string filename = folder + "/index.d.ts";
+            if (File.Exists(filename))
+            {
+                //if found
+                Espresso.TypeScript.TypeScriptParser parser = new Espresso.TypeScript.TypeScriptParser();
+                parser.Parse(filename);
+                parser.Dispose();
+            }
+
         }
     }
 }

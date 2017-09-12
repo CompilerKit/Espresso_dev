@@ -43,6 +43,7 @@
             this.button12 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
             this.button14 = new System.Windows.Forms.Button();
+            this.button15 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // listBox1
@@ -193,11 +194,22 @@
             this.button14.UseVisualStyleBackColor = true;
             this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
+            // button15
+            // 
+            this.button15.Location = new System.Drawing.Point(583, 508);
+            this.button15.Name = "button15";
+            this.button15.Size = new System.Drawing.Size(207, 45);
+            this.button15.TabIndex = 15;
+            this.button15.Text = "Test TypeScript2.5_DefiniteTyped";
+            this.button15.UseVisualStyleBackColor = true;
+            this.button15.Click += new System.EventHandler(this.button15_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(802, 632);
+            this.Controls.Add(this.button15);
             this.Controls.Add(this.button14);
             this.Controls.Add(this.button13);
             this.Controls.Add(this.button12);
@@ -236,6 +248,7 @@
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;
+        private System.Windows.Forms.Button button15;
     }
 }
 
