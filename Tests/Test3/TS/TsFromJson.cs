@@ -38,49 +38,15 @@ namespace Espresso.TypeScript
             //parse json data
             EsElem jsonObj = ParseJson(jsonstr);
             //get statements
-            EsArr stmts = jsonObj.GetAttributeValueAsArray("statements");
-            int j = stmts.Count;
-            for (int i = 0; i < j; ++i)
-            {
-                EsElem stmt = (EsElem)stmts[i];
-                SyntaxKind stmt_kind = stmt.Kind();
-                switch (stmt_kind)
-                {
-                    case SyntaxKind.ClassDeclaration:
-                        ReadClassDecl(stmt);
-                        break;
-                    case SyntaxKind.InterfaceDeclaration:
-                        ReadInterfaceDecl(stmt);
-                        break;
-                    case SyntaxKind.FunctionDeclaration:
-                        ReadFuncDecl(stmt);
-                        break;
-                    case SyntaxKind.VariableStatement:
-                        ReadVariableStatement(stmt);
-                        break;
-                    case SyntaxKind.ExpressionStatement:
-                        ReadExpressionStatement(stmt);
-                        break;
-                    case SyntaxKind.ModuleDeclaration:
-                        ReadModuleDecl(stmt);
-                        break;
-                    case SyntaxKind.IfStatement:
-                        //? -->found in tsc.ts
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
+            ReadModuleBody(jsonObj);
         }
         void ReadTypeAliasDecl(EsElem node)
         {
 
         }
-        void ReadModuleDecl(EsElem node)
+        void ReadModuleBody(EsElem node)
         {
-            ReadNameSyntax(node);
-            EsElem body = node.GetAttributeValueAsElem("body");
-            EsArr stmts = body.GetAttributeValueAsArray("statements");
+            EsArr stmts = node.GetAttributeValueAsArray("statements");
             if (stmts == null)
             {
                 //?
@@ -93,7 +59,8 @@ namespace Espresso.TypeScript
                 SyntaxKind stmt_kind = stmt.Kind();
                 switch (stmt_kind)
                 {
-
+                    default:
+                        throw new NotSupportedException();
                     case SyntaxKind.ClassDeclaration:
                         ReadClassDecl(stmt);
                         break;
@@ -115,22 +82,36 @@ namespace Espresso.TypeScript
                     case SyntaxKind.EnumDeclaration:
                         ReadEnumDecl(stmt);
                         break;
-                    case SyntaxKind.TypeAliasDeclaration:
-                        ReadTypeAliasDecl(stmt);
-                        break;
                     case SyntaxKind.IfStatement:
-                        //? found in sys.ts
+                        //? -->found in tsc.ts
                         break;
-                    default:
-                        throw new NotSupportedException();
+                    case SyntaxKind.ExportDeclaration:
+                    case SyntaxKind.ExportAssignment:
+                    case SyntaxKind.NamespaceExportDeclaration:
+                    case SyntaxKind.ImportEqualsDeclaration:
+                    case SyntaxKind.ImportDeclaration:
+                    case SyntaxKind.TypeAliasDeclaration:
+                        //TODO:
+                        break;
+
                 }
             }
+        }
+        void ReadModuleDecl(EsElem node)
+        {
+            ReadNameSyntax(node);
+            EsElem body = node.GetAttributeValueAsElem("body");
+            ReadModuleBody(body);
         }
 
         void ReadNameSyntax(EsElem node)
         {
             EsElem es_name = node.GetAttributeValueAsElem("name");
-            string name = es_name.GetAttributeValueAsString("escapedText");
+            if (es_name != null)
+            {
+                string name = es_name.GetAttributeValueAsString("escapedText");
+            }
+            
         }
 
         void ReadVariableStatement(EsElem node)
@@ -308,6 +289,8 @@ namespace Espresso.TypeScript
                     case SyntaxKind.Constructor:
                         ReadConstructor(mb);
                         break;
+                    case SyntaxKind.IndexSignature:
+                        break;
                 }
             }
         }
@@ -353,6 +336,11 @@ namespace Espresso.TypeScript
             SyntaxKind typeKind = astTypeSyntax.Kind();
             switch (typeKind)
             {
+                default:
+                    throw new NotSupportedException();
+                case SyntaxKind.MappedType:
+                case SyntaxKind.ConstructorType:
+                    break;
                 case SyntaxKind.StringKeyword:
                     break;
                 case SyntaxKind.NumberKeyword:
@@ -373,6 +361,8 @@ namespace Espresso.TypeScript
                     break;
                 case SyntaxKind.ArrayType:
                     break;
+                case SyntaxKind.ObjectKeyword:
+                    break;
                 case SyntaxKind.TupleType:
                     break;
                 case SyntaxKind.FunctionType:
@@ -383,8 +373,11 @@ namespace Espresso.TypeScript
                     break;
                 case SyntaxKind.LastTypeNode:
                     break;
-                default:
-                    throw new NotSupportedException();
+                case SyntaxKind.TypeQuery:
+                    break;
+                case SyntaxKind.ParenthesizedType:
+                    break;
+
             }
         }
         void ReadMethodDecl(EsElem methodDecl)

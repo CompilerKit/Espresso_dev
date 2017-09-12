@@ -987,8 +987,6 @@ namespace Test3
 
         private void button13_Click(object sender, EventArgs e)
         {
-            
-             
             //read from sample folder
             string[] sampleFiles = System.IO.Directory.GetFiles("../Test3/TS/ts_samples");
             int j = sampleFiles.Length;
@@ -1002,15 +1000,38 @@ namespace Test3
                     parser.Dispose();
                 }
             }
+        }
 
-            //parser.Parse("greeter1.ts");
-            //parser.Parse("core.ts");
-            //parser.Parse("types.ts");
-            //parser.Parse("tsc.ts");
-            //parser.Parse("sys.ts");
-            //parser.Parse("sourcemap.ts"); 
-            //parser.Parse("scanner.ts");
-            //parser.Parse("program.ts");
+        private void button14_Click(object sender, EventArgs e)
+        {
+            //read from sample folder
+            string[] folders = Directory.GetDirectories("D:/projects2/DefinitelyTyped/types");
+            //in each folder we find index.d.ts
+            int j = folders.Length;
+
+            for (int i = 748; i < j; ++i)
+            {
+                string filename = folders[i].Replace('\\', '/') + "/index.d.ts";
+                if (File.Exists(filename))
+                {
+                    //if found
+                    Espresso.TypeScript.TypeScriptParser parser = new Espresso.TypeScript.TypeScriptParser();
+                    parser.Parse(filename);
+                    parser.Dispose();
+                }
+            }
+            //string[] sampleFiles = System.IO.Directory.GetFiles("d://projects2/);
+            //int j = sampleFiles.Length;
+            //for (int i = 0; i < j; ++i)
+            //{
+            //    string filename = Path.GetFileName(sampleFiles[i]);
+            //    if (Path.GetExtension(filename) == ".ts")
+            //    {
+            //        Espresso.TypeScript.TypeScriptParser parser = new Espresso.TypeScript.TypeScriptParser();
+            //        parser.Parse(filename);
+            //        parser.Dispose();
+            //    }
+            //}
         }
     }
 }
