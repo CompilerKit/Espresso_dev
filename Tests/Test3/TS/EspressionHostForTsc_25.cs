@@ -118,15 +118,19 @@ namespace Espresso.TypeScript
             else
             {
                 //in this version we from sample folder only
-                return System.IO.File.ReadAllText(filename);
-
-                //string onlyFilename = System.IO.Path.GetFileName(filename);
-                //if(onlyFilename =="index.ts")
-                //if (System.IO.File.Exists("../Test3/TS/ts_samples/" + onlyFilename))
-                //{
-                //    return System.IO.File.ReadAllText("../Test3/TS/ts_samples/" + onlyFilename);
-                //} 
-                //return "";
+                if (filename.StartsWith("D:/projects2/DefinitelyTyped/types"))
+                {
+                    return System.IO.File.ReadAllText(filename);
+                }
+                else
+                {
+                    string onlyFilename = System.IO.Path.GetFileName(filename); 
+                    if (System.IO.File.Exists("../Test3/TS/ts_samples/" + onlyFilename))
+                    {
+                        return System.IO.File.ReadAllText("../Test3/TS/ts_samples/" + onlyFilename);
+                    }
+                    return "";
+                } 
             }
         }
         [JsMethod]

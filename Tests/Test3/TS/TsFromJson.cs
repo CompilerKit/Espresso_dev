@@ -290,6 +290,7 @@ namespace Espresso.TypeScript
                         ReadConstructor(mb);
                         break;
                     case SyntaxKind.IndexSignature:
+                    case SyntaxKind.SemicolonClassElement:
                         break;
                 }
             }
@@ -338,6 +339,12 @@ namespace Espresso.TypeScript
             {
                 default:
                     throw new NotSupportedException();
+                case SyntaxKind.ThisType:
+                case SyntaxKind.NullKeyword:
+                case SyntaxKind.UndefinedKeyword:
+                case SyntaxKind.IndexedAccessType:
+                case SyntaxKind.SymbolKeyword:
+                case SyntaxKind.TypeOperator:
                 case SyntaxKind.MappedType:
                 case SyntaxKind.ConstructorType:
                     break;
