@@ -118,13 +118,15 @@ namespace Espresso.TypeScript
             else
             {
                 //in this version we from sample folder only
-                string onlyFilename = System.IO.Path.GetFileName(filename);
-                if (System.IO.File.Exists("../Test3/TS/ts_samples/" + onlyFilename))
-                {
-                    return System.IO.File.ReadAllText("../Test3/TS/ts_samples/" + onlyFilename);
-                }
+                return System.IO.File.ReadAllText(filename);
 
-                return "";
+                //string onlyFilename = System.IO.Path.GetFileName(filename);
+                //if(onlyFilename =="index.ts")
+                //if (System.IO.File.Exists("../Test3/TS/ts_samples/" + onlyFilename))
+                //{
+                //    return System.IO.File.ReadAllText("../Test3/TS/ts_samples/" + onlyFilename);
+                //} 
+                //return "";
             }
         }
         [JsMethod]
