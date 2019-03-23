@@ -1,11 +1,20 @@
 Espresso / Espresso-VE / Espresso-ND
 ===============
 
+---
+ 
+
+Latest V8 Engine : from NodeJs **v11.12.0**
+
+(for NodeJS 10.15.3, visit => https://github.com/prepare/Espresso/tree/v_10_15_3)
+
+---
+
 V8 js engine with C# (in-process), => **Espresso-VE**
 
 NodeJS engine with C# (in-process), => **Espresso-ND**
 
----
+
 
 **Espresso** (from [vroomjs](https://github.com/Daniel15/vroomjs) ) is a bridge between the .NET CLR (think C# or F#) and the V8 Javascript
 engine that uses P/Invoke and a thin C layer (_libespr_).
@@ -136,10 +145,37 @@ see example, run nodejs http server
 ![esprnd0](https://user-images.githubusercontent.com/9301044/27217262-56b30152-52a3-11e7-929a-83a3e97b64d6.png)
 ![esprnd](https://user-images.githubusercontent.com/9301044/27217264-59ac0d68-52a3-11e7-84cb-d0e99b342686.png)
 
+---
+**Espresso-ND with Http2**
+
+NodeJs 9 has built-in http2 server.
+
+so, test it :)
+ 
+
+![node_9_3](https://user-images.githubusercontent.com/7447159/34459594-08a24386-ee27-11e7-8e67-8a15c8ec0a7e.png)
+
+_pic 1: http2 protocol example, on node v9.3.0_
+
+---
+
+![node_9_3_1](https://user-images.githubusercontent.com/7447159/34459593-086b696a-ee27-11e7-90b3-98d4785fc3c9.png)
+
+_pic2: (1) console screen, (2) http2 server says 'Hello World' to Firefox_
+
+
+---
+
+
 
 see how to build it at https://github.com/prepare/Espresso/issues/30
 
 
+---
+**License**:
 
+MIT, 2013, Federico Di Gregorio <fog@initd.org>, https://github.com/fogzot/vroomjs
+ 
+MIT, 2015-2019, WinterDev
 
  

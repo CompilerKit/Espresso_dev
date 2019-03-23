@@ -1,4 +1,4 @@
-﻿//MIT, 2015-2017, WinterDev, EngineKit, brezza92
+﻿//MIT, 2015-present, WinterDev, EngineKit, brezza92
 //MIT, 2013, Federico Di Gregorio <fog@initd.org>
 
 using System;
@@ -25,8 +25,12 @@ namespace Espresso
         int _currentContextId = 0;
         int _currentScriptId = 0;
         readonly HandleRef _engine;//native js engine 
-        JsTypeDefinitionBuilder defaultTypeBuilder;
+        JsTypeDefinitionBuilder _defaultTypeBuilder;
+        bool _disposed;
 
+        bool _engineFromNativePtr;
+        bool _nativeSideWasDisposed;
+        bool _shutingDown;
 
 
         public JsEngine(JsTypeDefinitionBuilder defaultTypeBuilder, int maxYoungSpace, int maxOldSpace)
@@ -50,10 +54,23 @@ namespace Espresso
                 _keepalive_enumerate_properties,
                 maxYoungSpace,
                 maxOldSpace));
-            this.defaultTypeBuilder = defaultTypeBuilder;
+            _defaultTypeBuilder = defaultTypeBuilder;
         }
+
+        public JsEngine(int maxYoungSpace, int maxOldSpace)
+           : this(new DefaultJsTypeDefinitionBuilder(), maxYoungSpace, maxOldSpace)
+        {
+
+        }
+        public JsEngine()
+            : this(new DefaultJsTypeDefinitionBuilder(), -1, -1)
+        {
+
+        }
+
+
         public JsEngine(IntPtr nativeJsEnginePtr)
-            : this(nativeJsEnginePtr, new DefaultJsTypeDefinitionBuilder())
+          : this(nativeJsEnginePtr, new DefaultJsTypeDefinitionBuilder())
         {
         }
         public JsEngine(IntPtr nativeJsEnginePtr,
@@ -81,22 +98,11 @@ namespace Espresso
                 _keepalive_enumerate_properties
                 );
             _engine = new HandleRef(this, nativeJsEnginePtr);
-            this.defaultTypeBuilder = defaultTypeBuilder;
+            _defaultTypeBuilder = defaultTypeBuilder;
+            _engineFromNativePtr = true;
         }
-        public JsEngine(int maxYoungSpace, int maxOldSpace)
-           : this(new DefaultJsTypeDefinitionBuilder(), maxYoungSpace, maxOldSpace)
-        {
 
-        }
-        public JsEngine()
-            : this(new DefaultJsTypeDefinitionBuilder(), -1, -1)
-        {
-
-        }
-        internal HandleRef UnmanagedEngineHandler
-        {
-            get { return this._engine; }
-        }
+        internal HandleRef UnmanagedEngineHandler => _engine;
 
         public void TerminateExecution()
         {
@@ -121,8 +127,8 @@ namespace Espresso
 
         void KeepAliveValueOf(int contextId, int slot, ref JsValue output)
         {
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
 
                 throw new ContextNotFoundException(contextId);
@@ -132,8 +138,8 @@ namespace Espresso
 
         void KeepAliveInvoke(int contextId, int slot, ref JsValue args, ref JsValue output)
         {
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
                 throw new ContextNotFoundException(contextId);
             }
@@ -144,8 +150,8 @@ namespace Espresso
 #if DEBUG_TRACE_API
 			Console.WriteLine("set prop " + contextId + " " + slot);
 #endif
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
                 throw new ContextNotFoundException(contextId);
             }
@@ -156,8 +162,8 @@ namespace Espresso
 #if DEBUG_TRACE_API
 			Console.WriteLine("get prop " + contextId + " " + slot);
 #endif
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
                 throw new ContextNotFoundException(contextId);
             }
@@ -167,9 +173,8 @@ namespace Espresso
         {
 #if DEBUG_TRACE_API
 			Console.WriteLine("delete prop " + contextId + " " + slot);
-#endif
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+#endif    
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
                 throw new ContextNotFoundException(contextId);
             }
@@ -181,8 +186,8 @@ namespace Espresso
 #if DEBUG_TRACE_API
 			Console.WriteLine("enumerate props " + contextId + " " + slot);
 #endif
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
                 throw new ContextNotFoundException(contextId);
             }
@@ -193,8 +198,8 @@ namespace Espresso
 #if DEBUG_TRACE_API
 			Console.WriteLine("Keep alive remove for " + contextId + " " + slot);
 #endif
-            JsContext context;
-            if (!_aliveContexts.TryGetValue(contextId, out context))
+
+            if (!_aliveContexts.TryGetValue(contextId, out JsContext context))
             {
                 return;
             }
@@ -206,20 +211,22 @@ namespace Espresso
             CheckDisposed();
             //
             int newContextId = Interlocked.Increment(ref _currentContextId);
-            JsContext ctx = new JsContext(newContextId, this, ContextDisposed, this.defaultTypeBuilder);
+            JsContext ctx = new JsContext(newContextId, this, ContextDisposed, _defaultTypeBuilder);
 
             _aliveContexts.Add(newContextId, ctx);
             return ctx;
         }
-        public JsContext CreateContext(IntPtr nativeJsContext)
+        public JsContext CreateContext(IntPtr nativeJsContext, JsTypeDefinitionBuilder typedefBuilder = null)
         {
             CheckDisposed();
             //
             int id = Interlocked.Increment(ref _currentContextId);
-            JsContext ctx = new JsContext(id, this, ContextDisposed, nativeJsContext, this.defaultTypeBuilder);
+            JsContext ctx = new JsContext(id, this, ContextDisposed, nativeJsContext, typedefBuilder ?? _defaultTypeBuilder);
+            ctx.IsFromNativeContext = true;
             _aliveContexts.Add(id, ctx);
             return ctx;
         }
+
         public JsContext CreateContext(JsTypeDefinitionBuilder customTypeDefBuilder)
         {
             CheckDisposed();
@@ -248,6 +255,8 @@ namespace Espresso
 
         private void ContextDisposed(int id)
         {
+            if (_shutingDown) return;
+
             _aliveContexts.Remove(id);
         }
 
@@ -255,14 +264,10 @@ namespace Espresso
         {
             _aliveScripts.Remove(id);
         }
+        //------------------------------------------------- 
 
-        //-------------------------------------------------
-        bool _disposed;
+        public bool IsDisposed => _disposed;
 
-        public bool IsDisposed
-        {
-            get { return _disposed; }
-        }
 
         public void Dispose()
         {
@@ -273,14 +278,20 @@ namespace Espresso
         protected virtual void Dispose(bool disposing)
         {
             CheckDisposed();
-            _disposed = true; //? here?
 
             if (disposing)
             {
-
+                _shutingDown = true;
                 foreach (JsContext context in _aliveContexts.Values)
                 {
-                    context.Dispose();
+                    if (context.IsFromNativeContext)
+                    {
+                        context.Dispose();
+                    }
+                    else
+                    {
+                        JsContext.DisposeContextFromNativeSide(context);
+                    }
                 }
                 _aliveContexts.Clear();
                 //
@@ -290,10 +301,18 @@ namespace Espresso
                 }
                 _aliveScripts.Clear();
             }
+
+
+            _disposed = true; //? here?
+
 #if DEBUG_TRACE_API
 				Console.WriteLine("Calling jsEngine dispose: " + _engine.Handle.ToInt64());
-#endif      
-            jsengine_dispose(_engine);
+#endif
+
+            if (!this._nativeSideWasDisposed)
+            {
+                jsengine_dispose(_engine);
+            }
         }
 
         void CheckDisposed()
@@ -302,6 +321,15 @@ namespace Espresso
                 throw new ObjectDisposedException("JsEngine:" + _engine.Handle);
         }
 
+        public static void DisposeEngineFromNativeSide(JsEngine engine)
+        {
+            if (!engine._engineFromNativePtr)
+            {
+                throw new NotSupportedException();
+            }
+            engine._nativeSideWasDisposed = true;
+            engine.Dispose();
+        }
 
         public static void DumpAllocatedItems()
         {

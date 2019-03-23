@@ -1,4 +1,4 @@
-﻿//MIT, 2017, EngineKit
+﻿//MIT, 2017-present,WinterDev, EngineKit
 using System;
 using System.IO;
 
@@ -7,13 +7,48 @@ namespace EasePatcher
     class Program
     {
 
-        static string current_node_version = "node-v8.4.0";
-        static string patch_subdir = "node_patches/node8.4.0_modified";
+        //static string current_node_version = "node-v8.4.0";
+        //static string patch_subdir = "node_patches/node8.4.0_modified";
+        ////
+        //static string original_node_srcdir = @"../../../node-v8.4.0";
+        //static string espresso_srcdir = "../../../Espresso";
+        //static string config_pars = "";
+
+        //for v8.9.3
+        //static string current_node_version = "node-v8.9.3";
+        //static string patch_subdir = "node_patches/node8.9.3_modified";
+        ////
+        //static string original_node_srcdir = @"../../../node-v8.9.3";
+        //static string espresso_srcdir = "../../../Espresso";
+        //static string config_pars = "";
+
         //
-        static string original_node_srcdir = @"../../../node-v8.4.0";
-        static string espresso_srcdir = "../../../Espresso";
+        //for v9.3.0
+        //static string current_node_version = "node-v9.3.0";
+        //static string patch_subdir = "node_patches/node9.3.0_modified";
+        ////
+        //static string original_node_srcdir = @"../../../node-v9.3.0";
+        //static string espresso_srcdir = "../../../Espresso";
+        //static string config_pars = "";
+
+        //for v10.15.1
+        //static string current_node_version = "node-v10.15.3";
+        //static string patch_subdir = "node_patches/node10.15.3_modified";
+        ////
+        //static string original_node_srcdir = @"../../../../../../node-v10.15.3";
+        //static string espresso_srcdir = "../../../../../../Espresso";
+        //static string config_pars = "";
+
+
+        //for v10.15.1
+        static string current_node_version = "node-v11.12.0";
+        static string patch_subdir = "node_patches/node11.12.0_modified";
+        //
+        static string original_node_srcdir = @"../../../../../../node-v11.12.0";
+        static string espresso_srcdir = "../../../../../../Espresso";
         static string config_pars = "";
-        //
+
+
         static PatcherOS currentOS;
 
         static void Main(string[] args)
@@ -42,7 +77,9 @@ namespace EasePatcher
             switch (currentOS)
             {
                 case PatcherOS.Windows:
-                    config_pars = "x64 release nosign nobuild"; //default build 
+                    //x64
+                    config_pars = " x86 release nobuild full-icu download-all"; //default build .
+                    //x86                     
                     break;
                 case PatcherOS.Mac:
                     config_pars = "--dest-cpu=x64 --shared --xcode";
@@ -53,6 +90,9 @@ namespace EasePatcher
             }
             //
             Console.Write("original_node_srcdir: " + original_node_srcdir + " ->");
+
+            string[] files = Directory.GetFiles(espresso_srcdir);
+
             if (!Directory.Exists(original_node_srcdir))
             {
                 Console.WriteLine(" NOT FOUND! ");

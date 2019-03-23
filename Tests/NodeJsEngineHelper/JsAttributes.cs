@@ -1,8 +1,8 @@
-﻿//MIT, 2015-2017, WinterDev, EngineKit, brezza92
+﻿//MIT, 2015-present, WinterDev, EngineKit, brezza92
 
 using System;
 
-namespace Test3
+namespace Espresso
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class JsTypeAttribute : Attribute

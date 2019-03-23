@@ -12,71 +12,58 @@ namespace TestNode01
         /// </summary>
         [STAThread]
         static void Main()
-        {   
+        {
             //-----------------------------------
             //1.
             //after we build nodejs in dll version
             //we will get node.dll
             //then just copy it to another name 'libespr'   
             string currentdir = System.IO.Directory.GetCurrentDirectory();
-            string libEspr = @"../../../node-v8.4.0/Release/libespr.dll";
+
+            string libEspr = @"../../../node-v11.12.0/Release/libespr.dll"; //previous version 8.4.0
             if (File.Exists(libEspr))
             {
                 //delete the old one
                 File.Delete(libEspr);
             }
             File.Copy(
-               @"../../../node-v8.4.0/Release/node.dll", //from
+               @"../../../node-v11.12.0/Release/node.dll", // //previous version 8.4.0
                libEspr);
+
             //-----------------------------------
             //2. load libespr.dll (node.dll)
             //----------------------------------- 
-
-
+            //string libEspr = "libespr.dll";
             IntPtr intptr = LoadLibrary(libEspr);
             int errCode = GetLastError();
             int libesprVer = JsBridge.LibVersion;
 #if DEBUG
             JsBridge.dbugTestCallbacks();
-#endif
-            //------------ 
-            JsEngine.RunJsEngine(
-                new string[] { "--inspect", "hello.espr" },
-                (IntPtr nativeEngine, IntPtr nativeContext) =>
-            {
+#endif  
+            //------------
+            NodeJsEngineHelper.Run(new string[] { "--inspect", "hello.espr" },
+                ss => @" const http2 = require('http2');
+                    const fs = require('fs');
 
-                JsEngine eng = new JsEngine(nativeEngine);
-                JsContext ctx = eng.CreateContext(nativeContext);
-                //-------------
-                //this LibEspressoClass object is needed,
-                //so node can talk with us,
-                //-------------
+                    const server = http2.createSecureServer({
+                      key: fs.readFileSync('localhost-privkey.pem'),
+                      cert: fs.readFileSync('localhost-cert.pem')
+                    });
+                    server.on('error', (err) => console.error(err));
+                    server.on('socketError', (err) => console.error(err));
 
-                JsTypeDefinition jstypedef = new JsTypeDefinition("LibEspressoClass");
-                jstypedef.AddMember(new JsMethodDefinition("LoadMainSrcFile", args =>
-                {
-                    //handle main src loading here
-                    string filedata = @"   var http = require('http');
-                                                (function(){
-	                                                console.log('hello from Espresso-ND');
-	                                                var server = http.createServer(function(req, res) {
-                                                    res.writeHead(200);
-                                                    res.end('Hello! from Espresso-ND');
-                                                    });
-                                                    server.listen(8080,'localhost');
-                                                })();";
-                    args.SetResult(filedata);
-                })); 
-                ctx.RegisterTypeDefinition(jstypedef);
-                //----------
-                //then register this as x***       
-                //this object is just an instance for reference        
-                ctx.SetVariableFromAny("LibEspresso",
-                      ctx.CreateWrapper(new object(), jstypedef));
-            });
+                    server.on('stream', (stream, headers) => {
+                      // stream is a Duplex
+                      stream.respond({
+                        'content-type': 'text/html',
+                        ':status': 200
+                      });
+                      stream.end('<h1>Hello World, EspressoND, node 11.12.0</h1>');
+                    });
 
+                    server.listen(8443);
+                    ");
             string userInput = Console.ReadLine();
-
         }
 
 
